@@ -2,6 +2,11 @@
   'use strict';
   // CZ_PRUZNE_SKLO_PL_BASE_V25_2026_06_28 — polská logika 1:1, česká lokalizace, GLS 185 Kč, size-limit + buttons fix
 
+  // Ochrana proti dvojímu načtení / konfliktu s jiným widgetem (stejná DOM id #sg-root).
+  // Bez toho dvě instance na jedné stránce rozbijí kliknutí (duplicitní id → mrtvé tlačítko).
+  if (window.__mkWidgetActive || document.getElementById('sg-root')) return;
+  window.__mkWidgetActive = true;
+
   const WORKER_URL = 'https://bot-cz.metsukisutemi.workers.dev';
   const SG_AVATAR = 'https://static.tildacdn.com/stor3530-6335-4030-b366-363966383437/5efb2fc2ea144f1ae0d2f12885474f78.jpg';
 
@@ -190,7 +195,7 @@
         </div>
         <div id="sg-pw">chat 24/7 · sklomekke.cz</div>
       </div>
-      <div id="sg-tooltip">Klára online — spočítám cenu za 30 s. 👋</div>
+      <div id="sg-tooltip">Klára je online 24/7 — spočítám cenu za 30 s. 👋</div>
       <button id="sg-btn">
         <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         <span id="sg-badge"></span>
