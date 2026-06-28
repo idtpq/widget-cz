@@ -403,7 +403,7 @@ Město:`;
   }
 
   // ── Data extraction ──────────────────────────────────────────────────────
-  // HU telefon: +36 / 06 magyar telefonszám
+  // CZ telefon: +420 / 00420 / 0 — české telefonní číslo
   function getPhone(t){
     const raw=String(t||'');
     const m=raw.match(/(?:\+420[\s-]?|00420[\s-]?|0)?[1-9]\d{2}[\s-]?\d{3}[\s-]?\d{3}/);
@@ -414,8 +414,8 @@ Město:`;
   }
   function getEmail(t){const m=t.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);return m?m[0]:null;}
 
-  const NOT_NAMES=new Set(['akarok','kérek','kerek','van','nincs','igen','nem','online','dobírka','utanvet','rendelés','rendeles','kérdés','kerdes','kontakt','telefon','mennyibe','mennyi','ár','ar','asztal','obdélník','teglalap','čtverec','negyzet','kruh','kor','rozměr','meret','vastagság','vastagsag','termék','termek','doprava','szallitas','platba','fizetes','cím','cim']);
-  const ADDR_EXCLUDE=/^(?:🛒\s*)?Szeretnék rendelni$|^(?:❓\s*)?Mám otázku$|^Matné dřevo$|^Üveg\s*\/\s*lakk\s*\/\s*lesklé$|^Laminát$|^Intenzív\s*\(konyha\/gyerekek\)$|^Kevésbé gyakori\s*\(dolgozó\/nappali\)$|^1,5mm\s*—\s*kedvezőbb ár$|^2mm\s*—\s*masszívabb$|^Kruh alakú$|^Čtverec alakú$|^Igen,\s*van még$|^Nem,\s*ennyi$|^(?:💳\s*)?Online\s*\(kartou\)$|^(?:💳\s*)?Teljes\s+platba\s+kartou$|^(?:🚚\s*)?Dobírka$|^\d{2,4}[×x]\d{2,4}\s*cm$|^Más rozměr$|^Mám otázku a termékről$/i;
+  const NOT_NAMES=new Set(['chci','chtěl','chtela','mám','mam','ano','ne','online','dobírka','dobirka','objednávka','objednavka','objednat','dotaz','otázka','otazka','kontakt','telefon','kolik','cena','stůl','stul','obdélník','obdelnik','čtverec','ctverec','kruh','rozměr','rozmer','tloušťka','tloustka','produkt','doprava','platba','adresa']);
+  const ADDR_EXCLUDE=/^(?:❓\s*)?Mám otázku$|^Mám otázku před údaji$|^Matné dřevo$|^Sklo\s*\/\s*lak\s*\/\s*lesk$|^Laminát$|^Nevím\s*\/\s*poradit$|^Kuchyň\s*\/\s*denní používání$|^Jídelna\s*\/\s*děti$|^Obývák\s*\/\s*méně často$|^Psací stůl$|^Terasa\s*\/\s*zahrada$|^Nevím$|^1,5mm\s*—\s*levnější$|^2mm\s*—\s*pevnější$|^Doporučte mi variantu$|^Ukázat rozdíl$|^Výprodej -50%$|^Ano,\s*výprodej -50%$|^Ne,\s*standardní$|^Ukázat standardní cenu$|^Kulatý stůl$|^Čtvercový stůl$|^Jiný tvar$|^Ano,\s*potvrzuji$|^Ano,\s*mám více$|^Ne,\s*to je vše$|^Přidat další rozměr$|^Změnit rozměr$|^Změnit\s*\/\s*přidat rozměr$|^Mám více rozměrů$|^Nevím přesně$|^(?:💳\s*)?Platba kartou online$|^(?:🚚\s*)?Dobírka$|^Které vybrat\?$|^Dotaz k dopravě$|^\d{2,4}[×x]\d{2,4}\s*cm$|^📋\s*Vložit šablonu údajů$/i;
   function normalizeAddressPart(t){
     return String(t||'')
       .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,'')
@@ -431,7 +431,7 @@ Město:`;
     if(getEmail(v)&&normalizeAddressPart(v).length<3)return false;
     if(/^[+\d\s-]{7,}$/.test(v))return false;
     if(/\d{2,3}\s*[xX×]\s*\d{2,3}/.test(v))return false;
-    return /\b\d{4}\b|\b(utca|u\.|út|ut|tér|ter|kruhút|korut|köz|koz|sor|házszám|hazszam)\b/i.test(v)||/\d/.test(v);
+    return /\b\d{4}\b|\b(ulice|ul\.|nám\.|náměstí|namesti|třída|tř\.|trida|nábřeží|nabrezi|náves|naves)\b/i.test(v)||/\d/.test(v);
   }
 
   function rememberAddressPart(t){
@@ -444,16 +444,15 @@ Město:`;
 
   function cleanAddressTail(value){
     return String(value||'')
-      .replace(/\bHamarosan\s+felvesszük[\s\S]*$/i,'')
-      .replace(/\bHamarosan\s+jelentkezünk[\s\S]*$/i,'')
-      .replace(/\bA\s+platební\s+link[\s\S]*$/i,'')
-      .replace(/\bPlatbai\s+link[\s\S]*$/i,'')
+      .replace(/\bBrzy\s+se\s+vám\s+ozveme[\s\S]*$/i,'')
+      .replace(/\bOdkaz\s+na\s+platbu[\s\S]*$/i,'')
+      .replace(/\bPlatební\s+odkaz[\s\S]*$/i,'')
       .replace(/[;,\s]+$/g,'')
       .trim();
   }
 
   function getAddressFromBot(t){
-    const m=String(t||'').match(/Adresa:\s*([\s\S]*?)(?:\n\s*(?:Hamarosan|A platební link|Platbai link)|\n\s*\n|$)/i);
+    const m=String(t||'').match(/Adresa:\s*([\s\S]*?)(?:\n\s*(?:Brzy|Odkaz na platbu|Platební odkaz)|\n\s*\n|$)/i);
     if(!m)return null;
     const addr=cleanAddressTail(m[1]).split('\n').map(x=>x.trim()).filter(Boolean).join(', ').replace(/^[,;\s]+|[,;\s]+$/g,'').trim();
     return addr||null;
@@ -467,9 +466,9 @@ Město:`;
       .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,' ')
       .replace(/(?:tel\.?|telefon|phone)\s*[:.]?/ig,' ')
       .replace(/(?:\+420[\s-]?|00420[\s-]?|0)?[1-9]\d{2}[\s-]?\d{3}[\s-]?\d{3}/g,' ')
-      .replace(/\b(utca|u\.|út|ut|tér|ter|kruhút|korut|köz|koz|sor)\b[\s\S]*$/i,' ')
+      .replace(/\b(ulice|ul\.|nám\.|náměstí|namesti|třída|tř\.|trida|nábřeží|nabrezi|náves|naves)\b[\s\S]*$/i,' ')
       .replace(/\d{4}[\s\S]*$/,' ')
-      .replace(/[^A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű .'-]/g,' ')
+      .replace(/[^A-Za-zÁČĎÉĚÍŇÓŘŠŤÚŮÝŽáčďéěíňóřšťúůýž .'-]/g,' ')
       .replace(/\s+/g,' ')
       .trim();
     const words=first.split(/\s+/).filter(Boolean).slice(0,3);
@@ -492,8 +491,8 @@ Město:`;
   function isProductLine(line){
     const l=String(line||'').trim();
     if(!/^[-—•▪■]/.test(l))return false;
-    if(/doprava|szallitas|végösszeg|vegosszeg|üveg ára|uveg ara|idő|ido|cím|cim|link|fizet/i.test(l))return false;
-    return /\d{2,4}\s*[xX×х]\s*\d{2,4}|kruh|obdélník|čtverec|průměr|prumer|cm|mm|lesklé|lesklé|rýhované|rýhované|výprodej|výprodej/i.test(l)&&/Kč|HUF|huf/i.test(l);
+    if(/doprava|spolu|cena skla|dodání|dodani|adresa|link|platba/i.test(l))return false;
+    return /\d{2,4}\s*[xX×х]\s*\d{2,4}|kruh|obdélník|čtverec|průměr|prumer|cm|mm|lesklé|rýhované|výprodej/i.test(l)&&/Kč|huf/i.test(l);
   }
 
   function getProductLines(t){
@@ -511,9 +510,9 @@ Město:`;
   }
 
   function getPrice(t){
-    let m=String(t||'').match(/Üveg\s+ára[:\s]+([\d\s]+(?:[,.]\d+)?)\s*(?:Kč|HUF|huf)/i);
+    let m=String(t||'').match(/Cena\s+skla[:\s]+([\d\s]+(?:[,.]\d+)?)\s*(?:Kč|huf)/i);
     if(m)return cleanMoney(m[1]);
-    m=String(t||'').match(/(?:Cena zboží|Cena zboží)[:\s]+([\d\s]+(?:[,.]\d+)?)\s*(?:Kč|HUF|huf)/i);
+    m=String(t||'').match(/Cena\s+zboží[:\s]+([\d\s]+(?:[,.]\d+)?)\s*(?:Kč|huf)/i);
     if(m)return cleanMoney(m[1]);
     const summed=sumProductLines(t);
     if(summed)return summed;
@@ -537,15 +536,15 @@ Město:`;
     return productLines.length?productLines.map(l=>l.replace(/^[-—•▪■]\s*/,'').trim()).join(' | '):null;
   }
 
-  // ── Vastagság felismerése a beszélgetésből ────────────────────────────
-  // Vastagság felismerése a beszélgetésből.
+  // ── Rozpoznání tloušťky z konverzace ────────────────────────────
+  // Rozpoznání tloušťky z konverzace.
   function detectThickness(text){
     const s=String(text||'').toLowerCase();
-    const rýhované=/rýhované|rýhované/.test(s);
-    const výprodej=/výprodej|výprodej|kiárusítás|kiarusitas/.test(s);
+    const rýhované=/rýhované|ryhovane/.test(s);
+    const výprodej=/výprodej|vyprodej/.test(s);
     if(výprodej)return 'výprodej 1,5mm';
-    if(/2\s*mm|2mm|2\.0\s*mm|masszív|massziv|erősebb|erosebb|vastagabb/.test(s))return rýhované?'rýhované 2mm':'lesklé 2mm';
-    if(/1[\s.,]*5\s*mm|1\.5mm|1,5mm|kedvezőbb|kedvezobb|olcsóbb|olcsobb|vékonyabb|vekonyabb/.test(s))return rýhované?'rýhované 1,5mm':'lesklé 1,5mm';
+    if(/2\s*mm|2mm|2\.0\s*mm|pevnější|pevnejsi|silnější|silnejsi|tlustší|tlustsi/.test(s))return rýhované?'rýhované 2mm':'lesklé 2mm';
+    if(/1[\s.,]*5\s*mm|1\.5mm|1,5mm|levnější|levnejsi|tenčí|tenci|tenká|tenka/.test(s))return rýhované?'rýhované 1,5mm':'lesklé 1,5mm';
     if(rýhované)return 'rýhované 1,5mm';
     return null;
   }
@@ -554,7 +553,7 @@ Město:`;
     if(t)ses.thickness=t;
   }
 
-  // ── Fallback termékadatok a beszélgetésből ─────
+  // ── Záložní údaje o produktu z konverzace ─────
   function getDimsFallback(){
     const userText=hist.filter(m=>m.role==='user').map(m=>m.content).join('\n');
     const found=[];
@@ -563,11 +562,11 @@ Město:`;
       if(dimLimitReason(w,h,false))return;
       found.push(w+'×'+h+' cm');
     };
-    // 1) з "cm": 120×80 cm, 81x40 cm
+    // 1) s "cm": 120×80 cm, 81x40 cm
     for(const mm of userText.matchAll(/(\d{2,4})\s*[xX×х\/]\s*(\d{2,4})\s*cm/gi))pushDim(mm[1],mm[2]);
-    // 2) БЕЗ "cm": 120x80, 120 × 80, 120/80, 120 na 80
+    // 2) bez "cm": 120x80, 120 × 80, 120/80, 120 na 80
     for(const mm of userText.matchAll(/(?:^|[^\d.,])(\d{2,4})\s*(?:[xX×х\/]|na)\s*(\d{2,4})(?![\d.,])/gi))pushDim(mm[1],mm[2]);
-    // Kruh alakú rozměrek: kruh ⌀90, průměr 90 cm
+    // Kruhové rozměry: kruh ⌀90, průměr 90 cm
     const circles=[...userText.matchAll(/(?:kruh|průměr|prumer|[⌀Øø])\s*[⌀Øø]?\s*(\d{2,4})\s*cm?/gi)]
       .map(mm=>parseInt(mm[1],10))
       .filter(d=>!dimLimitReason(d,d,true))
@@ -592,7 +591,7 @@ Město:`;
     }).join(' | ');
   }
 
-  const BAD_NAME_RE=/\b(érdekel|erdekel|keresek|telefonos|visszahívás|visszahivas|asztal|obdélník|teglalap|čtverec|negyzet|kruh|kor|konyha|mennyibe|ár|ar|platba|fizetes|doprava|szallitas|cím|cim|rozměr|meret|vastagság|vastagsag|termék|termek)\b/i;
+  const BAD_NAME_RE=/\b(zajímá|zajima|hledám|hledam|telefon|telefonicky|zpětné volání|zpetne volani|stůl|stul|obdélník|obdelnik|čtverec|ctverec|kruh|kuchyně|kuchyne|kolik|cena|platba|doprava|adresa|rozměr|rozmer|tloušťka|tloustka|produkt)\b/i;
 
   function titleCaseName(name){
     return String(name||'').split(/\s+/).filter(Boolean).map(w=>w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
@@ -605,7 +604,7 @@ Město:`;
   }
 
   function wantsPhoneContact(text){
-    return/(telefonon|telefonos|visszahívást|visszahivast|hívjanak|hivjanak|kérek\s+hívást|kerek\s+hivast|kapcsolatot\s+kérek|kapcsolatot\s+kerek)/i.test(String(text||''));
+    return/(telefonicky|po\s+telefonu|zavolejte\s+mi|ať\s+mi\s+zavoláte|at\s+mi\s+zavolate|zavolat\s+mi|zpětné\s+volání|zpetne\s+volani|chci\s+(?:aby\s+)?(?:mi\s+)?zavol|telefonický\s+kontakt|telefonicky\s+kontakt|kontaktujte\s+mě\s+telefonicky)/i.test(String(text||''));
   }
 
   function isBadName(n){
@@ -615,8 +614,8 @@ Město:`;
     if(/[,@0-9]/.test(v))return true;
     const parts=v.split(/\s+/).filter(Boolean);
     if(parts.length<2||parts.length>3)return true;
-    if(parts.some(p=>NOT_NAMES.has(p)||p.length<2||/mm|cm|Kč|HUF|huf/i.test(p)))return true;
-    if(!/^[A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű .'-]+$/i.test(v))return true;
+    if(parts.some(p=>NOT_NAMES.has(p)||p.length<2||/mm|cm|Kč|huf/i.test(p)))return true;
+    if(!/^[A-Za-zÁČĎÉĚÍŇÓŘŠŤÚŮÝŽáčďéěíňóřšťúůýž .'-]+$/i.test(v))return true;
     return false;
   }
 
@@ -625,7 +624,7 @@ Město:`;
       .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g,' ')
       .replace(/(?:tel\.?|telefon|phone)\s*[:.]?/ig,' ')
       .replace(/(?:\+420[\s-]?|00420[\s-]?|0)?[1-9]\d{2}[\s-]?\d{3}[\s-]?\d{3}/g,' ')
-      .replace(/\b(utca|u\.|út|ut|tér|ter|kruhút|korut|köz|koz|sor)\b[\s\S]*$/i,' ')
+      .replace(/\b(ulice|ul\.|nám\.|náměstí|namesti|třída|tř\.|trida|nábřeží|nabrezi|náves|naves)\b[\s\S]*$/i,' ')
       .replace(/\d{4}[\s\S]*$/,' ')
       .split(',')[0]
       .replace(/^[,;:\s]+|[,;:\s]+$/g,'')
@@ -638,12 +637,12 @@ Město:`;
     const raw=String(t||'').trim();
     if(!raw||ADDR_EXCLUDE.test(raw))return null;
     const lastBot=hist.filter(m=>m.role==='assistant').slice(-1)[0]?.content||'';
-    const botAskedShipping=/név|nev|telefon|e-mail|email|dopravai adatok|szallitasi adatok|utca|házszám|hazszam|irányítószám|iranyitoszam|város|varos|cím|cim/i.test(lastBot);
-    const hasContactOrAddress=!!(getPhone(raw)||getEmail(raw)||/\d{4}|\b(utca|u\.|út|ut|tér|ter|kruhút|korut|köz|koz|sor)\b/i.test(raw));
-    if(!botAskedShipping&&!hasContactOrAddress&&!/(?:nevem|nevem:|név|nev|a nevem|hívnak|hivnak)[:\s]/i.test(raw))return null;
-    let explicit=raw.match(/(?:név|nev|nevem|a nevem|hívnak|hivnak)\s*:?\s*([A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű .'-]+(?:\s+[A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű .'-]+)?)/i);
+    const botAskedShipping=/jméno|jmeno|příjmení|prijmeni|telefon|e-mail|email|údaje pro doručení|udaje pro doruceni|ulice|číslo domu|cislo domu|psč|psc|město|mesto/i.test(lastBot);
+    const hasContactOrAddress=!!(getPhone(raw)||getEmail(raw)||/\d{4}|\b(ulice|ul\.|nám\.|náměstí|namesti|třída|tř\.|trida|nábřeží|nabrezi|náves|naves)\b/i.test(raw));
+    if(!botAskedShipping&&!hasContactOrAddress&&!/(?:jméno|jmeno|jmenuji se|jmenuju se|jsem)[:\s]/i.test(raw))return null;
+    let explicit=raw.match(/(?:jméno|jmeno|jmenuji se|jmenuju se|jsem)\s*:?\s*([A-Za-zÁČĎÉĚÍŇÓŘŠŤÚŮÝŽáčďéěíňóřšťúůýž .'-]+(?:\s+[A-Za-zÁČĎÉĚÍŇÓŘŠŤÚŮÝŽáčďéěíňóřšťúůýž .'-]+)?)/i);
     let candidate=explicit?explicit[1]:cleanNameCandidate(raw);
-    const words=candidate.replace(/[^A-Za-zÁÉÍÓÖŐÚÜŰáéíóöőúüű .'-]/g,' ').split(/\s+/).map(w=>w.trim()).filter(Boolean).slice(0,3);
+    const words=candidate.replace(/[^A-Za-zÁČĎÉĚÍŇÓŘŠŤÚŮÝŽáčďéěíňóřšťúůýž .'-]/g,' ').split(/\s+/).map(w=>w.trim()).filter(Boolean).slice(0,3);
     if(words.length<2)return null;
     if(words.some(w=>w.length<2||NOT_NAMES.has(w.toLowerCase())||/mm|cm|Kč/i.test(w)))return null;
     const name=words.join(' ');
@@ -655,9 +654,9 @@ Město:`;
     if(!raw||ADDR_EXCLUDE.test(raw))return null;
     const withoutContact=normalizeAddressPart(raw);
     if(/\d{4}/.test(raw)){rememberAddressPart(withoutContact||raw);return ses.address||withoutContact||raw;}
-    if(/\b(utca|u\.|út|ut|tér|ter|kruhút|korut|köz|koz|sor)\b/i.test(raw)){rememberAddressPart(withoutContact||raw);return ses.address||withoutContact||raw;}
+    if(/\b(ulice|ul\.|nám\.|náměstí|namesti|třída|tř\.|trida|nábřeží|nabrezi|náves|naves)\b/i.test(raw)){rememberAddressPart(withoutContact||raw);return ses.address||withoutContact||raw;}
     const lastBot=hist.filter(m=>m.role==='assistant').slice(-1)[0]?.content||'';
-    const botAskedAddress=/cím|cim|utca|házszám|hazszam|város|varos|irányítószám|iranyitoszam|dopravai adatok|szallitasi adatok/i.test(lastBot);
+    const botAskedAddress=/adresa|ulice|číslo domu|cislo domu|město|mesto|psč|psc|údaje pro doručení|udaje pro doruceni/i.test(lastBot);
     if(botAskedAddress&&looksLikeAddressPart(raw)){rememberAddressPart(withoutContact||raw);return ses.address||withoutContact||raw;}
     const hasContact=getEmail(raw)||getPhone(raw);
     if(hasContact&&withoutContact&&withoutContact.length>3&&!ADDR_EXCLUDE.test(withoutContact)){rememberAddressPart(withoutContact);return ses.address||withoutContact;}
@@ -669,7 +668,7 @@ Město:`;
 
   function formatProductForTG(){
     const src=ses.product||getDimsFallback();
-    if(!src)return'pontosítás alatt';
+    if(!src)return'upřesňuje se';
     const lines=src.split('|').map(p=>p.trim()).filter(Boolean);
     return lines.map(p=>{
       const isCircle=p.includes('kruh')||p.includes('⌀');
@@ -682,8 +681,8 @@ Město:`;
   function buildLeadData(extra={}){
     const utm=getUTM();
     const pNum=parseFloat(ses.price)||0;
-    // FIX: a dopravat mindig az üveg értékéből számoljuk, nem a bot szövegéből.
-    // Ingyenes csak 3000 Kč üvegértéktől, különben 3540 Kč.
+    // FIX: dopravu vždy počítáme z hodnoty skla, ne z textu bota.
+    // Zdarma pouze od hodnoty skla 3000 Kč, jinak 185 Kč.
     let delivery;
     let total;
     if(pNum>0){
@@ -706,8 +705,8 @@ Město:`;
       phone:ses.phone||'',
       email:ses.email||'',
       contact:ses.contact||'',
-      product:ses.product||getDimsFallback()||(ses.phoneRequest?'Telefonos kapcsolat kérése':''),
-      product_formatted:ses.phoneRequest&&!ses.product?'📞 Telefonos kapcsolat kérése':formatProductForTG(),
+      product:ses.product||getDimsFallback()||(ses.phoneRequest?'Žádost o telefonický kontakt':''),
+      product_formatted:ses.phoneRequest&&!ses.product?'📞 Žádost o telefonický kontakt':formatProductForTG(),
       price:ses.price||'',
       delivery,
       total:ses.total||'',
@@ -766,7 +765,7 @@ Město:`;
     saveSessionNow(reason);
   }
 
-  // ── Warm lead: van e-mail és ár, de a rendelés nincs lezárva ────────────────
+  // ── Warm lead: je e-mail a cena, ale objednávka není uzavřena ────────────────
   async function scheduleWarmLead(){
     if(ses._warmLeadSent)return;
     if(!ses.email&&!ses.contact)return;
@@ -800,8 +799,8 @@ Město:`;
       const lastBot=hist.filter(m=>m.role==='assistant').slice(-1)[0]?.content||'';
       const pNum=parseFloat(ses.price)||0;
       const parsedTotal=getTotal(lastBot);
-      // FIX: determinisztikus doprava és végösszeg — nem a bot szövegére hagyatkozunk.
-      // Ingyenes csak 3000 Kč üvegértéktől, különben 3540 Kč kerül a Stripe összegbe.
+      // FIX: deterministická doprava a celková částka — nespoléháme na text bota.
+      // Zdarma pouze od hodnoty skla 3000 Kč, jinak se do částky Stripe přidá 185 Kč.
       const deliveryVal=pNum>0?(pNum>=3000?'gratis':'185'):(ses.delivery||'185');
       ses.delivery=deliveryVal;
       const finalTotal=pNum>0
@@ -846,10 +845,10 @@ Město:`;
     }
 
     if(wantsPhoneContact(text))ses.phoneRequest=true;
-    if(/dobírka|utanvet|átvétel|atvetel|futár|futar|készpénz|keszpenz|na dobírkaet/i.test(text))ses.paymentMethod='cod';
-    if(/online|kártya|kartya|kartou|bankkartyaval|teljes platba|teljes fizetes|stripe/i.test(text))ses.paymentMethod='stripe';
+    if(/dobírka|dobirka|převzetí|prevzeti|kurýr|kuryr|hotově|hotove|na dobírku/i.test(text))ses.paymentMethod='cod';
+    if(/online|kartou|kartu|platba kartou|stripe/i.test(text))ses.paymentMethod='stripe';
 
-    if(/igen.*kruh|kruh.*igen|kruh alakú|kerek/i.test(text)||text==='Kruh alakú'){
+    if(/ano.*kruh|kruh.*ano|kulatý|kulaty|kruhový|kruhovy/i.test(text)||text==='Kulatý stůl'){
       const allText=hist.map(m=>m.content).join(' ');
       const sameDims=[...allText.matchAll(/(\d{2,3})\s*[xX×]\s*(\d{2,3})\s*cm/g)].filter(m=>m[1]===m[2]);
       if(sameDims.length>0){
@@ -869,7 +868,7 @@ Město:`;
       }
     }
 
-    if(ses.paymentLinkSent&&ses.paymentMethod!=='cod'&&/dobírka|utanvet|átvétel|atvetel|cod|platba módosítása|fizetes modositasa|na dobírkaet/i.test(text)){
+    if(ses.paymentLinkSent&&ses.paymentMethod!=='cod'&&/dobírka|dobirka|převzetí|prevzeti|cod|změnit platbu|zmenit platbu|změna platby|zmena platby|na dobírku/i.test(text)){
       ses.paymentMethod='cod';
       const pNum=parseFloat(ses.price)||0;
       const deliveryVal=pNum>0?(pNum>=3000?'gratis':'185'):(ses.delivery||'185');
@@ -893,7 +892,7 @@ Město:`;
     hist.push({role:'user',content:text});
 
     if(ses.phoneRequest&&(ses.phone||ses.contact)&&!ses.leadFired){
-      if(!ses.product)ses.product='Telefonos kapcsolat kérése';
+      if(!ses.product)ses.product='Žádost o telefonický kontakt';
       await fireLead({status:'phone_request',request_type:'phone_request'});
     }
 
@@ -924,9 +923,9 @@ Město:`;
       if(product)ses.product=product;
       if(addrBot)ses.address=addrBot;
       if(nameAddr&&(!ses.name||isBadName(ses.name)))ses.name=nameAddr;
-      if(/telefonos|visszahív|visszahiv|hívjuk|hivjuk|telefonszám/i.test(reply))ses.phoneRequest=true;
-      if(/na dobírkaet|dobírka|dobírka|utanvet|átvétel|atvetel|futár|futar/i.test(reply))ses.paymentMethod='cod';
-      if(/A platební link|online|karta|bankkartya|fizet/i.test(reply)&&ses.paymentMethod!=='cod')ses.paymentMethod='stripe';
+      if(/telefonický kontakt|telefonicky kontakt|zavoláme|zavolame|zpětné volání|zpetne volani|telefonní číslo|telefonni cislo/i.test(reply))ses.phoneRequest=true;
+      if(/dobírka|dobirka|převzetí|prevzeti|kurýr|kuryr|na dobírku/i.test(reply))ses.paymentMethod='cod';
+      if(/odkaz na platbu|platební odkaz|online|kartou|karta/i.test(reply)&&ses.paymentMethod!=='cod')ses.paymentMethod='stripe';
 
       addBot(reply);addTime();detectQR(reply);
 
@@ -937,7 +936,7 @@ Město:`;
       if(!hasContactData()){scheduleSessionSave('idle_no_contact_after_bot');}
       else if(ses.paymentLinkSent){savePostPaymentUpdate('post_payment_bot_reply');}
 
-      const isConfirm=/Přijala jsem objednávku|A platební link|Spolu[:\s]/i.test(reply);
+      const isConfirm=/Přijala jsem objednávku|Odkaz na platbu|Platební odkaz|Spolu[:\s]/i.test(reply);
       if(isConfirm&&hasFullDeliveryData()&&!ses.paymentLinkSent){
         ses.paymentLinkSent=true;
         if(ses.paymentMethod==='cod'){
@@ -964,7 +963,7 @@ Město:`;
   function autoOpen(){
     if(sessionStorage.getItem('mk_auto_done')||sessionStorage.getItem('mk_auto_block'))return;
 
-    // Előnézeti buborék 5 másodperc után
+    // Náhledová bublina po 8 sekundách
     setTimeout(()=>{
       if(!open&&!sessionStorage.getItem('mk_auto_block')){
         const t=el('sg-tooltip');
@@ -972,7 +971,7 @@ Město:`;
       }
     },8000);
 
-    // Automatikus megnyitás 50 másodperc után
+    // Automatické otevření po 50 sekundách
     setTimeout(()=>{
       if(!open&&!sessionStorage.getItem('mk_auto_block')){
         sessionStorage.setItem('mk_auto_done','1');
