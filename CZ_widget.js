@@ -3,7 +3,6 @@
   // CZ_PRUZNE_SKLO_PL_BASE_V25_2026_06_28 — polská logika 1:1, česká lokalizace, GLS 185 Kč, size-limit + buttons fix
 
   const WORKER_URL = 'https://bot-cz.metsukisutemi.workers.dev';
-  const ASSISTANT_AVATAR_URL = 'https://static.tildacdn.com/stor3530-6335-4030-b366-363966383437/5efb2fc2ea144f1ae0d2f12885474f78.jpg';
   const SG_AVATAR = 'https://static.tildacdn.com/stor3530-6335-4030-b366-363966383437/5efb2fc2ea144f1ae0d2f12885474f78.jpg';
 
   function getUTM() {
@@ -86,11 +85,11 @@
     #sg-box{position:absolute;bottom:70px;right:0;width:340px;background:#fff;border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,.15);display:flex;flex-direction:column;overflow:hidden;max-height:calc(100vh - 120px);transition:opacity .2s,transform .2s;transform-origin:bottom right;}
     #sg-box.hidden{opacity:0;transform:scale(.95) translateY(8px);pointer-events:none;}
     #sg-hd{background:#1c3d2e;padding:14px 16px;display:flex;align-items:center;gap:10px;flex-shrink:0;}
-    .sg-hav{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden;border:2px solid rgba(255,255,255,.18);}
-    .sg-hav img{width:100%;height:100%;object-fit:cover;display:block;}
+    .sg-hav{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;}
     .sg-photo{background:#f4e6d6 url("${SG_AVATAR}") center/cover no-repeat!important;color:transparent;font-size:0;box-shadow:0 0 0 2px rgba(255,255,255,.14);}
     .sg-htxt{flex:1;min-width:0;}
     .sg-hname{color:#fff;font-size:14px;font-weight:600;}
+    .sg-hname::after{content:'24/7';display:inline-block;margin-left:7px;padding:2px 6px;border-radius:999px;background:rgba(104,211,145,.18);color:#b7f5c8;font-size:10px;font-weight:800;vertical-align:middle;letter-spacing:.2px;}
     .sg-hsub{color:rgba(255,255,255,.6);font-size:11px;margin-top:2px;display:flex;align-items:center;gap:5px;}
     .sg-online{width:6px;height:6px;background:#68d391;border-radius:50%;animation:sg-pulse 2s infinite;}
     @keyframes sg-pulse{0%,100%{opacity:1}50%{opacity:.4}}
@@ -104,8 +103,7 @@
     #sg-log::-webkit-scrollbar-thumb{background:#d0c8bc;border-radius:2px;}
     .sg-row{display:flex;align-items:flex-end;gap:7px;}
     .sg-row.u{flex-direction:row-reverse;}
-    .sg-ava{width:30px;height:30px;border-radius:50%;background:#1c3d2e;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;overflow:hidden;border:1px solid rgba(28,61,46,.12);}
-    .sg-ava img{width:100%;height:100%;object-fit:cover;display:block;}
+    .sg-ava{width:26px;height:26px;border-radius:50%;background:#1c3d2e;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;}
     .sg-photo-sm{background:#f4e6d6 url("${SG_AVATAR}") center/cover no-repeat!important;color:transparent;font-size:0;}
     .sg-bubble{max-width:78%;padding:9px 13px;font-size:14px;line-height:1.55;word-break:break-word;white-space:pre-wrap;border-radius:14px;}
     .sg-row.b .sg-bubble{background:#fff;color:#1a1a1a;border-bottom-left-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,.08);}
@@ -281,26 +279,45 @@ Město:`;
       return;
     }
 
+    // 4) Tloušťka — před intenzitou, protože odpověď o kuchyni obsahuje slovo "kuchyň".
     if(/kterou tloušťku|tloušťku si vyberete|1,5mm.*2mm|2mm.*1,5mm/i.test(raw)&&!ses.price){
       setQR(['1,5mm — levnější','2mm — pevnější','Doporučte mi variantu','Ukázat rozdíl','Výprodej -50%']);
       return;
     }
 
+    // 5) Rozměry — populární rozměry + více rozměrů.
     if(/zadejte rozměry v cm|rozměry v cm|rozměr v cm|např\. 120×80/i.test(raw)&&!ses.price){
       setQR(SIZE_BUTTONS);
       return;
     }
 
+    // 6) Typ povrchu — úvodní otázka.
     if(/jaký povrch|povrch má váš stůl|matné dřevo|sklo\/lak/i.test(t)){
       setQR(['Matné dřevo','Sklo / lak / lesk','Laminát','Nevím / poradit','Mám otázku']);
+
+    // 7) Intenzita / použití.
     }else if(/kuchyň|denní používání|pracovna|obývák|intenziv/i.test(t)&&!ses.price){
       setQR(['Kuchyň / denní používání','Jídelna / děti','Obývák / méně často','Psací stůl','Terasa / zahrada','Nevím']);
+
+    // 8) Výprodejová varianta.
+    }else if(/výprodej|výprodeji|polovina ceny|poloviční cen|-50%/i.test(t)){
+      setQR(['Ano, výprodej -50%','Ne, standardní','Ukázat standardní cenu']);
+
+    // 9) Nestandardní tvary.
+    }else if(/fotku nebo nákres|fotografie nebo nákres|nestandardní tvar|zaoblené rohy|ovál/i.test(t)){
+      setQR(['Pošlu na e-mail','Chci kontakt operátora','Mám jednoduchý obdélník']);
+
+    // 10) Čtverec / kruh / jiný tvar.
     }else if(/kulatý|čtvercový|kruh|čtverec/i.test(t)){
-      setQR(['Kulatý stůl','Čtvercový stůl','Nevím']);
-    }else if(/další stoly|více stolů/i.test(t)){
-      setQR(['Ano, mám více','Ne, to je vše']);
-    }else if(/otázku|pomoci|poradit/i.test(t)&&!ses.hasSummary){
-      setQR(['Spočítat cenu','Doprava','Materiál','Péče']);
+      setQR(['Kulatý stůl','Čtvercový stůl','Nevím','Jiný tvar']);
+
+    // 11) Další stoly.
+    }else if(/další stoly|více stolů|ještě jiné|to je vše/i.test(t)){
+      setQR(['Ano, mám více','Ne, to je vše','Mám více rozměrů']);
+
+    // 12) Obecné dotazy / FAQ.
+    }else if(/otázku|pomoci|poradit|s čím mohu/i.test(t)&&!ses.hasSummary){
+      setQR(['Spočítat cenu','Rozdíl 1,5mm / 2mm','Posouvá se?','Doprava a čas','Vrácení / reklamace','Čištění']);
     }
   }
 
@@ -804,7 +821,7 @@ Město:`;
       }else{
         clearPaymentUi();
         console.error('[MK] Stripe:',d.error);
-        addBot('Probléma történt az online platbasel. Írjon nekünk a puhauveg@gmail.com címre, és segítünk.');
+        addBot('Nastal problém s online platbou. Napište nám na sklomekke@gmail.com a pomůžeme vám.');
       }
     }catch(e){clearPaymentUi();console.error('[MK] Stripe error:',e);}
   }
@@ -886,7 +903,7 @@ Město:`;
     try{
       const res=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({messages:hist})});
       const data=await res.json();
-      const reply=data.content?.[0]?.text||'Elnézést, kérem próbálja újra.';
+      const reply=data.content?.[0]?.text||'Omlouvám se, zkuste to prosím znovu.';
       hist.push({role:'assistant',content:reply});
 
       const invalidReplySize=findInvalidSizeInText(reply);
@@ -936,7 +953,7 @@ Město:`;
       }
     }catch(e){
       el('sg-log').querySelector('.sg-typing')?.remove();
-      addBot('Rövid kapcsolódási hiba történt. Kérem, küldje el újra az üzenetet.');
+      addBot('Krátký výpadek spojení. Pošlete prosím zprávu ještě jednou.');
       if(!hasContactData())scheduleSessionSave('idle_error_no_contact');
       else if(ses.paymentLinkSent)savePostPaymentUpdate('post_payment_error');
     }finally{
